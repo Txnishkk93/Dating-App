@@ -29,25 +29,26 @@ export default function AuthPage() {
 
     try {
       if (isSignUp) {
-        const { data, error } = await supabase.auth.signUp({
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
         });
 
-        if (error) throw error;
-        if (data.user && !data.session) {
+        if (signUpError) throw signUpError;
+        if (data?.user && !data?.session) {
           setError("Please check your email for a confirmation link");
           return;
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        if (error) throw error;
+        if (signInError) throw signInError;
       }
-    } catch (error: any) {
-      setError(error.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message);
+      else setError("An unexpected error occurred");
     } finally {
       setLoading(false);
     }
@@ -103,9 +104,7 @@ export default function AuthPage() {
           </div>
 
           {error && (
-            <div className="text-red-600 dark:text-red-400 text-sm">
-              {error}
-            </div>
+            <div className="text-red-600 dark:text-red-400 text-sm">{error}</div>
           )}
 
           <button
